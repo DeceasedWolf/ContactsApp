@@ -36,35 +36,42 @@ public class ContactsApp extends Application {
     public void start(Stage primaryStage) {
         Pane mainLayout = new Pane();
         TableView<Contact> tableView = new TableView<>();
+        // allow the table to be editable with double click
         tableView.setEditable(true);
 
+        // name column
         TableColumn<Contact, String> nameCol = new TableColumn<>("Name");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-        nameCol.setCellFactory(TextFieldTableCell.forTableColumn()); // Use TextFieldTableCell for editing
+        nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        // when the name is edited, update the contact's name
         nameCol.setOnEditCommit(event -> {
             Contact contact = event.getRowValue();
             String newName = event.getNewValue();
-            // Check if the new name contains a comma
+            // check if the new name contains a comma
             if (newName != null && newName.contains(",")) {
                 dontYouDarePutCommasInHere();
-                // Do not update the contact's name
-                nameCol.getTableView().refresh(); // Refresh the table to discard the change
+                // do not update the contact's name and refresh the table to discard the change
+                nameCol.getTableView().refresh();
             } else {
                 if (newName == null || newName.trim().isEmpty()) {
-                    // If the new name is empty, fill it with "Not Filled In"
+                    // if the new name is empty, fill it with "Not Filled In"
                     contact.setName("Not Filled In");
                 } else {
+                    // set the new name
                     contact.setName(newName);
                 }
-                forceWriteToCSV(contacts); // Write changes to file
+                // write the changes to the file and refresh the table
+                forceWriteToCSV(contacts);
                 refreshTable();
             }
         });
 
+        // phone numbers column
         TableColumn<Contact, String> phoneNumbersCol = new TableColumn<>("Phone Number(s)");
         phoneNumbersCol.setCellValueFactory(cellData -> {
             Contact contact = cellData.getValue();
             String phoneNumbers = contact.getPhoneNumbers();
+            // if the phone numbers contain a semicolon, replace it with a comma (this is for multiple phone numbers)
             if (phoneNumbers.contains(";")) {
                 return new SimpleStringProperty(phoneNumbers.replace(";", ","));
             } else {
@@ -72,28 +79,24 @@ public class ContactsApp extends Application {
             }
         });
         phoneNumbersCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        // when the phone numbers are edited, update the contact's phone numbers
         phoneNumbersCol.setOnEditCommit(event -> {
             Contact contact = event.getRowValue();
             String newValue = event.getNewValue();
-            // Check if the new value contains a comma
-            if (newValue != null && newValue.contains(",")) {
-                dontYouDarePutCommasInHere();
-                // Do not update the contact's phone numbers
+            // Validate the new value
+            String errorMessage = validatePhoneNumberInput(newValue);
+            if (!errorMessage.isEmpty()) {
+                // Show error alert
+                showErrorAlert("Invalid Phone Number", errorMessage);
                 phoneNumbersCol.getTableView().refresh(); // Refresh the table to discard the change
             } else {
+                // Update the contact's phone numbers
                 if (newValue == null || newValue.trim().isEmpty()) {
-                    // If the new value is empty, fill it with "Not Filled In"
+                    // if the new value is empty, fill it with "Not Filled In"
                     contact.setPhoneNumbers("Not Filled In");
                 } else {
-                    if (newValue.matches("\\d{3}-\\d{3}-\\d{4}")) {
-                        contact.setPhoneNumbers(newValue);
-                    } else if (newValue.matches("^[0-9-]+$")) {
-                        showErrorAlert("Warning", "Format is not a US or CA phone number format");
-                        contact.setPhoneNumbers(newValue);
-                    } else {
-                        showErrorAlert("Invalid Phone Number", "Phone number should ideally be in the format ###-###-####");
-                        refreshTable();
-                    }
+                    // Update the contact's phone numbers
+                    contact.setPhoneNumbers(newValue);
                 }
                 forceWriteToCSV(contacts); // Write changes to file
                 refreshTable();
@@ -235,6 +238,9 @@ public class ContactsApp extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Displays the Add Contact window
+     */
     private void showAddContactWindow() {
         Stage addContactStage = new Stage();
         addContactStage.initModality(Modality.APPLICATION_MODAL);
@@ -362,11 +368,16 @@ public class ContactsApp extends Application {
         addContactStage.setScene(scene);
         addContactStage.showAndWait();
     }
-
+    /**
+     * Refreshes the table by clearing the list and reading from the file again
+     */
     private static void refreshTable() {
         contacts.clear();
         readFromFile();
     }
+    /**
+     * Displays an error alert with the given title and message
+     */
     private void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -374,6 +385,9 @@ public class ContactsApp extends Application {
         alert.setContentText(message);
         alert.showAndWait();
     }
+    /**
+     * Displays a professional industry-standard series of alerts if the user tries to input commas
+     */
     private void dontYouDarePutCommasInHere() {
         switch (commaCount) {
             case 0:
@@ -480,18 +494,23 @@ public class ContactsApp extends Application {
                 break;
         }
     }
+    /**
+     * Validates the input fields for the Add Contact window
+     */
     private String validateInput(String phoneNumbers, String email, String birthday) {
         StringBuilder errorMessage = new StringBuilder();
 
         if (!phoneNumbers.isEmpty()) {
-            if (phoneNumbers.matches("(\\d{3}-\\d{3}-\\d{4})(;\\d{3}-\\d{3}-\\d{4})*")) {
-                // this is good it is in normal format
-            } else if (phoneNumbers.matches("(\\d+)(;\\d+)*")) {
-                // the phone number is just numbers
-                showErrorAlert("Warning", "Format is not a US or CA phone number format");
+            if (!phoneNumbers.matches("(\\d{3}-\\d{3}-\\d{4})(;\\d{3}-\\d{3}-\\d{4})*")) {
+                if (phoneNumbers.matches("(\\d+)(;\\d+)*")) {
+                    // the phone number is just numbers
+                    showErrorAlert("Warning", "Format is not a US or CA phone number format");
+                } else {
+                    // it does not match the normal format nor is it just numbers
+                    errorMessage.append("- Phone numbers should ideally be in the format ###-###-####, separated by semicolons (only digits are also allowed)\n");
+                }
             } else {
-                // it does not match the normal format nor is it just numbers
-                errorMessage.append("- Phone numbers should ideally be in the format ###-###-####, separated by semicolons (only digits are also allowed)\n");
+                // this is good it is in normal format
             }
         }
 
@@ -505,6 +524,29 @@ public class ContactsApp extends Application {
 
         return errorMessage.toString();
     }
+    /**
+     * Validates the phone number input for phone number editing
+     */
+    private String validatePhoneNumberInput(String phoneNumbers) {
+        if (!phoneNumbers.isEmpty()) {
+            if (!phoneNumbers.matches("(\\d{3}-\\d{3}-\\d{4})(;\\d{3}-\\d{3}-\\d{4})*")) {
+                if (phoneNumbers.matches("(\\d+)(;\\d+)*")) {
+                    // the phone number is just numbers
+                    showErrorAlert("Warning", "Format is not a US or CA phone number format");
+                } else {
+                    // it does not match the normal format nor is it just numbers
+                    return "- Phone numbers should ideally be in the format ###-###-####, separated by semicolons (only digits are also allowed)\n";
+                }
+            } else {
+                // this is good it is in normal format
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Reads the data from the CSV file
+     */
     private static void readFromFile() {
         File file = new File(contactFilePath);
         if (file.exists()) {
@@ -520,8 +562,6 @@ public class ContactsApp extends Application {
                         String phoneNumbers = data[4].trim();
 
                         contacts.add(new Contact(name, phoneNumbers, email, address, birthday));
-                    } else {
-                        System.out.println("Invalid data format: " + line);
                     }
                 }
             } catch (IOException e) {
@@ -530,24 +570,7 @@ public class ContactsApp extends Application {
         }
     }
     /**
-     * Reads the data from a CSV file and returns it as a list of strings
-     */
-    public static List<String[]> readFromFileReturnList() {
-        List<String[]> data = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(contactFilePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                // Splitting the line into array based on comma separator
-                String[] values = line.split(",");
-                data.add(values);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return data;
-    }
-    /**
-     * Writes the data to a CSV file
+     * Writes the data to the CSV file
      */
     public static void writeToCSV(String filePath, List<String[]> newData) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath, true))) {
@@ -564,6 +587,9 @@ public class ContactsApp extends Application {
             e.printStackTrace();
         }
     }
+    /**
+     * Forces the data to be written to the CSV file (overwrites the existing data)
+     */
     private static void forceWriteToCSV(ObservableList<Contact> newData) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(contactFilePath))) {
             for (Contact contact : newData) {
@@ -577,17 +603,6 @@ public class ContactsApp extends Application {
                 line.append(contact.getPhoneNumbers().replaceAll(",", ";"));
 
                 bw.write(line.toString());
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    private static void forceWriteToCSV(List<String[]> newData) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(contactFilePath))) {
-            for (String[] row : newData) {
-                String line = String.join(",", row);
-                bw.write(line);
                 bw.newLine();
             }
         } catch (IOException e) {

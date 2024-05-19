@@ -1,10 +1,5 @@
 package luo.mathis.contactsapp;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-
-import java.util.List;
-
 public class Contact {
     private String name;
     private String phoneNumbers;
@@ -58,10 +53,6 @@ public class Contact {
 
     public void setPhoneNumbers(String phoneNumbers) {
         this.phoneNumbers = phoneNumbers;
-    }
-
-    public void setPhoneNumbersFromString(String phoneNumbersString) {
-        this.phoneNumbers = phoneNumbersString;
     }
 
 }
