@@ -182,6 +182,7 @@ public class ContactsApp extends Application {
                         String[] parts = newValue.split("/");
                         int day = Integer.parseInt(parts[0]);
                         int month = Integer.parseInt(parts[1]);
+                        int year = Integer.parseInt(parts[2]);
                         if (month < 1 || month > 12) {
                             // invalid month
                             showErrorAlert("Invalid Birthday", "Invalid month in birthday");
@@ -189,7 +190,14 @@ public class ContactsApp extends Application {
                             return;
                         }
                         // check if the day exists in the month
-                        if (month == 2) {
+                        if (month == 2 & !isLeapYear(year)) {
+                            if (day < 1 || day > 28) {
+                                // invalid day
+                                showErrorAlert("Invalid Birthday", "Invalid day in birthday");
+                                birthdayCol.getTableView().refresh();
+                                return;
+                            }
+                        } else if (month == 2 & isLeapYear(year)) {
                             if (day < 1 || day > 29) {
                                 // invalid day
                                 showErrorAlert("Invalid Birthday", "Invalid day in birthday");
@@ -590,11 +598,16 @@ public class ContactsApp extends Application {
             } else {
                 int day = Integer.parseInt(parts[0]);
                 int month = Integer.parseInt(parts[1]);
+                int year = Integer.parseInt(parts[2]);
                 if (month < 1 || month > 12) {
                     errorMessage.append("- Invalid month in birthday\n");
                 }
                 // check if the day exists in the month
-                if (month == 2) {
+                if (month == 2 & !isLeapYear(year)) {
+                    if (day < 1 || day > 28) {
+                        errorMessage.append("- Invalid day in birthday\n");
+                    }
+                } else if (month == 2 & isLeapYear(year)) {
                     if (day < 1 || day > 29) {
                         errorMessage.append("- Invalid day in birthday\n");
                     }
@@ -658,6 +671,20 @@ public class ContactsApp extends Application {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+    /**
+     * Checks if the given year is a leap year
+     */
+    public static boolean isLeapYear(int year) {
+        if (year % 4 == 0) {
+            if (year % 100 == 0) {
+                return year % 400 == 0;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
         }
     }
     /**
