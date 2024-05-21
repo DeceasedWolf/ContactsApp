@@ -1,12 +1,14 @@
 package luo.mathis.contactsapp;
 
 public class Contact {
+    // contacts have a name, phoneNumbers, email, address, and birthday
     private String name;
     private String phoneNumbers;
     private String email;
     private String address;
     private String birthday;
 
+    // constructor
     public Contact(String name, String phoneNumbers, String email, String address, String birthday) {
         this.name = name;
         this.phoneNumbers = phoneNumbers;
