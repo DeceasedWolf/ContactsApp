@@ -589,35 +589,40 @@ public class ContactsApp extends Application {
         if (!email.isEmpty() && (!email.matches(".+@.+\\..+") || email.contains(" "))) {
             errorMessage.append("- Please enter a valid email address in the form username@domain.tld\n");
         }
-        // if the birthday is not empty and does not match DD/MM/YYYY
+        // if the birthday is not empty
         if (!birthday.isEmpty()) {
-            String[] parts = birthday.split("/");
-            // check if the birthday is a valid day and month
-            if (parts.length != 3) {
+            // if it does not match DD/MM/YYYY
+            if (!birthday.matches("\\d{2}/\\d{2}/\\d{4}")) {
                 errorMessage.append("- Birthday should be in the format DD/MM/YYYY\n");
             } else {
-                int day = Integer.parseInt(parts[0]);
-                int month = Integer.parseInt(parts[1]);
-                int year = Integer.parseInt(parts[2]);
-                if (month < 1 || month > 12) {
-                    errorMessage.append("- Invalid month in birthday\n");
-                }
-                // check if the day exists in the month
-                if (month == 2 & !isLeapYear(year)) {
-                    if (day < 1 || day > 28) {
-                        errorMessage.append("- Invalid day in birthday\n");
-                    }
-                } else if (month == 2 & isLeapYear(year)) {
-                    if (day < 1 || day > 29) {
-                        errorMessage.append("- Invalid day in birthday\n");
-                    }
-                } else if (month == 4 || month == 6 || month == 9 || month == 11) {
-                    if (day < 1 || day > 30) {
-                        errorMessage.append("- Invalid day in birthday\n");
-                    }
+                String[] parts = birthday.split("/");
+                // check if the birthday is a valid day and month
+                if (parts.length != 3) {
+                    errorMessage.append("- Birthday should be in the format DD/MM/YYYY\n");
                 } else {
-                    if (day < 1 || day > 31) {
-                        errorMessage.append("- Invalid day in birthday\n");
+                    int day = Integer.parseInt(parts[0]);
+                    int month = Integer.parseInt(parts[1]);
+                    int year = Integer.parseInt(parts[2]);
+                    if (month < 1 || month > 12) {
+                        errorMessage.append("- Invalid month in birthday\n");
+                    }
+                    // check if the day exists in the month
+                    if (month == 2 & !isLeapYear(year)) {
+                        if (day < 1 || day > 28) {
+                            errorMessage.append("- Invalid day in birthday\n");
+                        }
+                    } else if (month == 2 & isLeapYear(year)) {
+                        if (day < 1 || day > 29) {
+                            errorMessage.append("- Invalid day in birthday\n");
+                        }
+                    } else if (month == 4 || month == 6 || month == 9 || month == 11) {
+                        if (day < 1 || day > 30) {
+                            errorMessage.append("- Invalid day in birthday\n");
+                        }
+                    } else {
+                        if (day < 1 || day > 31) {
+                            errorMessage.append("- Invalid day in birthday\n");
+                        }
                     }
                 }
             }
