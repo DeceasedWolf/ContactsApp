@@ -38,7 +38,6 @@ public class ContactsApp extends Application {
         TableView<Contact> tableView = new TableView<>();
         // allow the table to be editable with double click
         tableView.setEditable(true);
-
         // name column
         TableColumn<Contact, String> nameCol = new TableColumn<>("Name");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -65,7 +64,6 @@ public class ContactsApp extends Application {
                 refreshTable();
             }
         });
-
         // phone numbers column
         TableColumn<Contact, String> phoneNumbersCol = new TableColumn<>("Phone Number(s)");
         phoneNumbersCol.setCellValueFactory(cellData -> {
@@ -102,17 +100,15 @@ public class ContactsApp extends Application {
                 refreshTable();
             }
         });
-
-
         TableColumn<Contact, String> emailCol = new TableColumn<>("Email");
         emailCol.setCellValueFactory(new PropertyValueFactory<>("email"));
         emailCol.setCellFactory(TextFieldTableCell.forTableColumn());
         emailCol.setOnEditCommit(event -> {
             Contact contact = event.getRowValue();
             String newValue = event.getNewValue();
-            // Check if the new value contains a comma
-            if (newValue != null && newValue.contains(",")) {
-                dontYouDarePutCommasInHere();
+            // Check if the new value contains a comma or space
+            if (newValue != null && (newValue.contains(",") || newValue.contains(" "))) {
+                showErrorAlert("Invalid Email Address", "Email addresses cannot contain commas or spaces.");
                 // Do not update the contact's email
                 emailCol.getTableView().refresh(); // Refresh the table to discard the change
             } else {
@@ -154,7 +150,6 @@ public class ContactsApp extends Application {
                 refreshTable();
             }
         });
-
         TableColumn<Contact, String> birthdayCol = new TableColumn<>("Birthday");
         birthdayCol.setCellValueFactory(new PropertyValueFactory<>("birthday"));
         birthdayCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -182,7 +177,6 @@ public class ContactsApp extends Application {
                 refreshTable();
             }
         });
-
         TableColumn<Contact, Void> deleteColumn = new TableColumn<>("Delete");
         deleteColumn.setCellFactory(param -> new TableCell<>() {
             final Button deleteButton = new Button("Delete");
@@ -212,7 +206,6 @@ public class ContactsApp extends Application {
                 }
             }
         });
-
         nameCol.setMinWidth(150);
         phoneNumbersCol.setMinWidth(150);
         emailCol.setMinWidth(200);
@@ -520,7 +513,7 @@ public class ContactsApp extends Application {
             }
         }
 
-        if (!email.isEmpty() && !email.matches(".+@.+\\..+")) {
+        if (!email.isEmpty() && (!email.matches(".+@.+\\..+") || email.contains(" "))) {
             errorMessage.append("- Please enter a valid email address in the form username@domain.tld\n");
         }
 
