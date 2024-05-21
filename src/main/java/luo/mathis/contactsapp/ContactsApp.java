@@ -194,15 +194,21 @@ public class ContactsApp extends Application {
                 super.updateItem(item, empty);
                 if (empty) {
                     setGraphic(null);
+                    setText(null);
+                    setStyle(null); // Reset cell style
                 } else {
                     setGraphic(deleteButton);
+                    setText(null); // Make sure text is null if using graphic
                     deleteButton.setOnAction(event -> {
                         Contact contact = getTableView().getItems().get(getIndex());
                         contacts.remove(contact); // Remove the contact from the list
                         forceWriteToCSV(contacts); // Write the updated list back to the CSV file
                         refreshTable(); // Update the table after deleting
                     });
-                    setStyle("-fx-background-color: lightcoral;"); // Change the background color
+                    if (getIndex() == getIndex()) {
+                        // Style the cell only if it is the current index
+                        setStyle("-fx-background-color: lightcoral;"); // Change the background color for cells with delete button
+                    }
                 }
             }
         });
