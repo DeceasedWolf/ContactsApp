@@ -176,14 +176,48 @@ public class ContactsApp extends Application {
                     // if the new value is empty, fill it with "Not Filled In"
                     contact.setBirthday("Not Filled In");
                 } else {
-                    // if the new value is a valid birthday
+                    // if the new value is a valid birthday format
                     if (newValue.matches("\\d{2}/\\d{2}/\\d{4}")) {
+                        // validate the day and month
+                        String[] parts = newValue.split("/");
+                        int day = Integer.parseInt(parts[0]);
+                        int month = Integer.parseInt(parts[1]);
+                        if (month < 1 || month > 12) {
+                            // invalid month
+                            showErrorAlert("Invalid Birthday", "Invalid month in birthday");
+                            birthdayCol.getTableView().refresh();
+                            return;
+                        }
+                        // check if the day exists in the month
+                        if (month == 2) {
+                            if (day < 1 || day > 29) {
+                                // invalid day
+                                showErrorAlert("Invalid Birthday", "Invalid day in birthday");
+                                birthdayCol.getTableView().refresh();
+                                return;
+                            }
+                        } else if (month == 4 || month == 6 || month == 9 || month == 11) {
+                            if (day < 1 || day > 30) {
+                                // invalid day
+                                showErrorAlert("Invalid Birthday", "Invalid day in birthday");
+                                birthdayCol.getTableView().refresh();
+                                return;
+                            }
+                        } else {
+                            if (day < 1 || day > 31) {
+                                // invalid day
+                                showErrorAlert("Invalid Birthday", "Invalid day in birthday");
+                                birthdayCol.getTableView().refresh();
+                                return;
+                            }
+                        }
                         // update the contact's birthday
                         contact.setBirthday(newValue);
                     } else {
                         // show error alert and refresh the table to discard the change
                         showErrorAlert("Invalid Birthday", "Birthday format should be DD/MM/YYYY.");
-                        refreshTable();
+                        birthdayCol.getTableView().refresh();
+                        return;
                     }
                 }
                 // write changes to file and refresh the table
@@ -191,6 +225,7 @@ public class ContactsApp extends Application {
                 refreshTable();
             }
         });
+
         // delete column
         TableColumn<Contact, Void> deleteColumn = new TableColumn<>("Delete");
         deleteColumn.setCellFactory(param -> new TableCell<>() {
@@ -261,7 +296,6 @@ public class ContactsApp extends Application {
         primaryStage.setTitle("Contacts App");
         primaryStage.show();
     }
-
     /**
      * Displays the Add Contact window
      */
@@ -548,8 +582,32 @@ public class ContactsApp extends Application {
             errorMessage.append("- Please enter a valid email address in the form username@domain.tld\n");
         }
         // if the birthday is not empty and does not match DD/MM/YYYY
-        if (!birthday.isEmpty() && !birthday.matches("\\d{2}/\\d{2}/\\d{4}")) {
-            errorMessage.append("- Birthday should be in the format DD/MM/YYYY\n");
+        if (!birthday.isEmpty()) {
+            String[] parts = birthday.split("/");
+            // check if the birthday is a valid day and month
+            if (parts.length != 3) {
+                errorMessage.append("- Birthday should be in the format DD/MM/YYYY\n");
+            } else {
+                int day = Integer.parseInt(parts[0]);
+                int month = Integer.parseInt(parts[1]);
+                if (month < 1 || month > 12) {
+                    errorMessage.append("- Invalid month in birthday\n");
+                }
+                // check if the day exists in the month
+                if (month == 2) {
+                    if (day < 1 || day > 29) {
+                        errorMessage.append("- Invalid day in birthday\n");
+                    }
+                } else if (month == 4 || month == 6 || month == 9 || month == 11) {
+                    if (day < 1 || day > 30) {
+                        errorMessage.append("- Invalid day in birthday\n");
+                    }
+                } else {
+                    if (day < 1 || day > 31) {
+                        errorMessage.append("- Invalid day in birthday\n");
+                    }
+                }
+            }
         }
         return errorMessage.toString();
     }
@@ -574,7 +632,6 @@ public class ContactsApp extends Application {
         }
         return "";
     }
-
     /**
      * Reads the data from the CSV file
      */
