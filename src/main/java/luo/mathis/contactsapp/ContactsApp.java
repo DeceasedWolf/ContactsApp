@@ -21,6 +21,10 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Mathis Luo
+ * Date: May 22, 2024
+ */
 public class ContactsApp extends Application {
 
     private static final String contactFilePath = "src/main/java/luo/mathis/contactsapp/ListOfContacts.csv";
